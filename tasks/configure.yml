@@ -1,0 +1,29 @@
+---
+
+- name: create dante conf directory
+  file:
+    path: "{{ dante_conf_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: generate main configuration file
+  template:
+    src: main_config.j2
+    dest: "{{ dante_conf_path }}/danted.conf"
+    mode: '0600'
+  notify: restart danted service
+
+- name: configure PAM
+  block:
+    - name: generate pam cfg
+      template:
+        src: pam_cfg.j2
+        dest: "/etc/pam.d/sockd"
+    - name: generate pam pwdfile
+      template:
+        src: pam_pwdfile.j2
+        dest: "{{ dante_pam_pwdfile }}"
+        mode: '0640'
+  when: (dante_pam_auth.user|length > 0) and (dante_pam_auth.password|length > 0)

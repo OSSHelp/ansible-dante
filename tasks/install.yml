@@ -1,0 +1,80 @@
+---
+
+- name: install apt-transport-https
+  apt:
+    name: apt-transport-https
+    update_cache: yes
+    cache_valid_time: 86400
+  when: ansible_distribution_release == 'xenial' or ansible_distribution_release == 'bionic'
+
+- name: add osshelp apt-key
+  apt_key:
+    url: https://pkgs.osshelp.ru/public.key
+    state: present
+  when: ansible_distribution_release == 'xenial' or ansible_distribution_release == 'bionic'
+
+- name: generate osshelp-900
+  template: src=osshelp-900.j2 dest=/etc/apt/preferences.d/osshelp-900
+  when: ansible_distribution_release == 'xenial' or ansible_distribution_release == 'bionic'
+
+- name: add osshelp repository
+  apt_repository:
+    repo: 'deb https://pkgs.osshelp.ru/ubuntu/ {{ ansible_distribution_release }}-testing main restricted universe multiverse'
+    state: present
+    filename: osshelp-testing
+    update_cache: true
+  when: ansible_distribution_release == 'xenial' or ansible_distribution_release == 'bionic'
+
+- name: package installation
+  apt:
+    name: "{{ dante_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 86400
+
+- name: create dante conf directory
+  file:
+    path: "{{ dante_conf_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: create dante pidfile directory
+  file:
+    path: "{{ dante_pidfile_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: generate main configuration file
+  template:
+    src: main_config.j2
+    dest: '{{ dante_conf_path }}/danted.conf'
+  notify: restart danted service
+
+- name: create systemd unit override dir
+  file:
+    path: /etc/systemd/system/danted.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when: systemd_unit_override
+
+- name: create systemd unit override
+  template:
+    src: danted-override.j2
+    dest: /etc/systemd/system/danted.service.d/override.conf
+    owner: root
+    group: root
+    mode: 0644
+  when: systemd_unit_override
+  notify: ["reload danted unit", "restart danted service"]
+
+- name: service enabled check
+  service:
+    name: "{{ dante_service_name }}"
+    enabled: true
+    state: started

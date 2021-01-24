@@ -1,0 +1,75 @@
+logoutput: {{ dante_default_params.logoutput }}
+user.privileged: {{ dante_default_params.user.privileged }}
+user.notprivileged: {{ dante_default_params.user.notprivileged }}
+user.libwrap: {{ dante_default_params.user.libwrap }}
+
+{% if dante_internal_protocol is defined and dante_internal_protocol|length %}
+internal.protocol: {% for protocol in dante_internal_protocol %}{{ protocol }} {% endfor %}
+{% elif dante_default_params.internal_protocol is defined and dante_default_params.internal_protocol|length %}
+internal.protocol: {% for protocol in dante_default_params.internal_protocol %}{{ protocol }} {% endfor %}
+{% endif %}
+
+{% if dante_internal is defined and dante_internal|length %}
+{% for item in dante_internal %}
+internal: {{ item }}
+{% endfor %}
+{% elif dante_default_params.internal is defined and dante_default_params.internal|length %}
+{% for item in dante_default_params.internal %}
+internal: {{ item }}
+{% endfor %}
+{% endif %}
+
+{% if dante_external_protocol is defined and dante_external_protocol|length %}
+external.protocol: {% for protocol in dante_external_protocol %}{{ protocol }} {% endfor %}
+{% elif dante_default_params.external_protocol is defined and dante_default_params.external_protocol|length %}
+external.protocol: {% for protocol in dante_default_params.external_protocol %}{{ protocol }} {% endfor %}
+{% endif %}
+
+{% if dante_external is defined and dante_external|length %}
+{% for item in dante_external %}
+external: {{ item }}
+{% endfor %}
+{% elif dante_default_params.external is defined and dante_default_params.external|length %}
+{% for item in dante_default_params.external %}
+external: {{ item }}
+{% endfor %}
+{% endif %}
+
+{% if dante_socksmethod is defined and dante_socksmethod|length %}
+socksmethod: {{ dante_socksmethod }}
+{% endif %}
+{% if dante_clientmethod is defined and dante_clientmethod|length %}
+clientmethod: {{ dante_clientmethod }}
+{% endif %}
+
+{% if dante_access_rules is defined and dante_access_rules|length %}
+{% for rule in dante_access_rules %}
+{% if rule.name is defined and rule.name|length %}
+# {{ rule.name }}
+{% endif %}
+client {{ rule.mode | mandatory }} {
+    from: {{ rule.from | mandatory }} to: {{ rule.to | mandatory }}
+    log: {{ rule.log | mandatory }}
+}
+
+{% endfor %}
+{% endif %}
+
+{% if dante_command_rules is defined and dante_command_rules|length %}
+{% for rule in dante_command_rules %}
+{% if rule.comment is defined and rule.comment|length %}
+# {{ rule.comment }}
+{% endif %}
+socks {{ rule.action | mandatory }} {
+{% if rule.socksmethod is defined and rule.socksmethod|length %}
+    socksmethod: {{ rule.socksmethod }}
+{% endif %}
+    from: {{ rule.from | mandatory }} to: {{ rule.to | mandatory }}
+    command: {{ rule.command | mandatory }}
+{% if rule.protocol is defined and rule.protocol|length %}
+    protocol: {{ rule.protocol }}
+{% endif %}
+    log: {{ rule.log | mandatory }}
+}
+{% endfor %}
+{% endif %}

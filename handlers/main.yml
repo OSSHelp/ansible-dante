@@ -1,0 +1,10 @@
+---
+
+- name: reload danted unit
+  systemd:
+    daemon_reload: yes
+
+- name: restart danted service
+  service:
+    name: "{{ dante_service_name }}"
+    state: restarted

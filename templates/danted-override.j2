@@ -1,0 +1,44 @@
+[Service]
+{% if ansible_distribution_release == 'xenial' %}
+PermissionsStartOnly=true
+ExecStart=
+ExecStartPre=
+ExecStart=/usr/sbin/danted -D -f {{ dante_conf_path }}/danted.conf  -p {{ dante_pidfile_path }}/danted.pid
+ExecStartPre=/bin/sh -c ' \
+	uid=`sed -n -e "s/[[:space:]]//g" -e "s/#.*//" -e "/^user\\.privileged/{s/[^:]*://p;q;}" {{ dante_conf_path }}/danted.conf`; \
+	if [ -n "$uid" ]; then \
+		touch {{ dante_pidfile_path }}/danted.pid; \
+		chown $uid {{ dante_pidfile_path }}/danted.pid; \
+	fi \
+	'
+PIDFile={{ dante_pidfile_path }}/danted.pid
+Restart=always
+{% elif ansible_distribution_release == 'bionic' %}
+ExecStart=
+ExecStartPre=
+ExecStart=+/usr/sbin/danted -D -f {{ dante_conf_path }}/danted.conf -p {{ dante_pidfile_path }}/danted.pid
+ExecStartPre=/bin/sh -c ' \
+	uid=`sed -n -e "s/[[:space:]]//g" -e "s/#.*//" -e "/^user\\.privileged/{s/[^:]*://p;q;}" {{ dante_conf_path }}/danted.conf`; \
+	if [ -n "$uid" ]; then \
+		touch {{ dante_pidfile_path }}/danted.pid; \
+		chown $uid {{ dante_pidfile_path }}/danted.pid; \
+	fi \
+	'
+PIDFile={{ dante_pidfile_path }}/danted.pid
+Restart=always
+{% elif ansible_distribution_release == 'focal' %}
+Type=
+Type=forking
+ExecStart=
+ExecStartPre=
+ExecStart=+/usr/sbin/danted -D -f {{ dante_conf_path }}/danted.conf  -p {{ dante_pidfile_path }}/danted.pid
+ExecStartPre=/bin/sh -c ' \
+	uid=`sed -n -e "s/[[:space:]]//g" -e "s/#.*//" -e "/^user\\.privileged/{s/[^:]*://p;q;}" {{ dante_conf_path }}/danted.conf`; \
+	if [ -n "$uid" ]; then \
+		touch {{ dante_pidfile_path }}/danted.pid; \
+		chown $uid {{ dante_pidfile_path }}/danted.pid; \
+	fi \
+	'
+PIDFile={{ dante_pidfile_path }}/danted.pid
+Restart=always
+{% endif %}

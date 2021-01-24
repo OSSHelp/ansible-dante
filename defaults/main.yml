@@ -1,0 +1,38 @@
+---
+dante_setup: full
+
+dante_packages:
+  - dante-server
+
+dante_service_name: danted
+dante_configuration_file: '/etc/danted.conf'
+
+dante_default_params:
+  logoutput: syslog
+  user:
+    privileged: proxy
+    notprivileged: nobody
+    libwrap: nobody
+  internal_protocol:
+    - ipv4
+    - ipv6
+  internal:
+    - '0.0.0.0 port = 1080'
+    - ':: port = 1080'
+  external_protocol:
+    - ipv4
+    - ipv6
+  external:
+    - eth0
+
+dante_pam_auth:
+  user: ''
+  password: ''
+
+dante_custom_params: []
+
+systemd_unit_override: False
+
+dante_conf_path: /etc
+dante_pidfile_path: /run
+dante_pam_pwdfile: "{{ dante_conf_path }}/users.passwd"
